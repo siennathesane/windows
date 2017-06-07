@@ -1,0 +1,18 @@
+environment:
+  GOPATH: c:\gopath
+
+clone_folder: c:\gopath\src\github.com\mxplusb\windows
+
+install:
+  - echo %PATH%
+  - echo %GOPATH%
+  - set PATH=%GOPATH%\bin;c:\go\bin;%PATH%
+  - go version
+  - go env
+  - go get -v -t ./...
+
+build_script:
+  - cd kernel32
+  - go test -v
+  - cd ..\psapi
+  - go test -v

@@ -9,6 +9,7 @@ type (
 	Dword32 int32
 	Dword64 int64
 	LptStr uint16
+	LpdWord uint32
 	PULong64 uint64
 	SizeT uintptr
 )

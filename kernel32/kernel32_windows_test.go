@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/mxplusb/windows"
+	"github.com/mxplusb/windows/common"
 )
 
 func TestGetCurrentProcess(t *testing.T) {
@@ -34,7 +35,7 @@ func TestQueryProcessCycleTime(t *testing.T) {
 			t.Fatalf("didn't report any cycles! %s", err)
 		}
 	}
-	t.Logf("ran for %d cycles!\n", cycles)
+	t.Logf("run for %d cycles thus far\n", cycles)
 }
 
 func ExampleQueryProcessCycleTime() {
@@ -47,4 +48,28 @@ func ExampleQueryProcessCycleTime() {
 		panic(err)
 	}
 	fmt.Printf("the runtime is using %d cycles\n", cycles)
+}
+
+func TestInternalGetComputerName(t *testing.T) {
+	var size windows.LpdWord = MaxComputerNameLength + 1
+	localBuffer := make([]windows.LptStr, size)
+	if err := getComputerName(&localBuffer[0], &size); err != nil {
+		t.Fatal(err)
+	}
+	// just in case.
+	if empty := string(common.LptStrToString(localBuffer[0:size])); empty == "" {
+		t.Fatal("computer name is empty!")
+	}
+	t.Logf("computer name is %s", string(common.LptStrToString(localBuffer[:size])))
+}
+
+func TestGetComputerName(t *testing.T) {
+	me, err := GetComputerName()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if me == "" {
+		t.Fatal("computer name is empty!")
+	}
+	t.Logf("computer name is %s", me)
 }
