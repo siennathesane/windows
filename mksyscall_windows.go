@@ -8,7 +8,7 @@
 mksyscall_windows generates windows system call bodies
 
 It parses all files specified on command line containing function
-prototypes (like mksyscall.go) and prints system call bodies
+prototypes (like syscall_windows.go) and prints system call bodies
 to standard output.
 
 The prototypes are marked by lines beginning with "//sys" and read
@@ -76,8 +76,6 @@ func trim(s string) string {
 }
 
 var packageName string
-
-var docStrings = make(map[string]string)
 
 func packagename() string {
 	return packageName
@@ -329,7 +327,6 @@ type Fn struct {
 	Name        string
 	Params      []*Param
 	Rets        *Rets
-	Doc         string
 	PrintTrace  bool
 	dllname     string
 	dllfuncname string
@@ -402,10 +399,6 @@ func newFn(s string) (*Fn, error) {
 		return nil, errors.New("Could not extract function name and parameters from \"" + f.src + "\"")
 	}
 	f.Name = prefix
-	// if we can, map the doc string to the function name.
-	if val, ok := docStrings[f.Name]; ok {
-		f.Doc = val
-	}
 	var err error
 	f.Params, err = extractParams(body, f)
 	if err != nil {
@@ -668,23 +661,9 @@ func (src *Source) ParseFile(path string) error {
 		if len(t) < 7 {
 			continue
 		}
-		if !strings.HasPrefix(t, "//sys") && !strings.HasPrefix(t, "//sysdoc") {
+		if !strings.HasPrefix(t, "//sys") {
 			continue
 		}
-
-		// add the doc strings to the docString map.
-		if strings.HasPrefix(t, "//sysdoc") {
-			localDocString := t[8:]
-			if !(localDocString[0] == ' ' || localDocString[0] == '\t' || localDocString[0:1] == "\t\t") {
-				continue
-			}
-			// grab the function name for the key.
-			fnName := strings.SplitN(localDocString[1:], " ", 2)
-			docStrings[fnName[0]] = localDocString[1:]
-			// move to the next line since this isn't a function line.
-			continue
-		}
-
 		t = t[5:]
 		if !(t[0] == ' ' || t[0] == '\t') {
 			continue
@@ -896,7 +875,6 @@ func {{.Name}}({{.ParamList}}) {{template "results" .}}{
 {{end}}
 
 {{define "funcbody"}}
-{{ if .Doc }}// {{.Doc}} {{end}}
 func {{.HelperName}}({{.HelperParamList}}) {{template "results" .}}{
 {{template "tmpvars" .}}	{{template "syscall" .}}
 {{template "seterror" .}}{{template "printtrace" .}}	return

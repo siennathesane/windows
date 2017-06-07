@@ -24,11 +24,10 @@ func ExampleGetCurrentProcess() {
 }
 
 func TestQueryProcessCycleTime(t *testing.T) {
-	var cycles windows.PULONG64
+	var cycles windows.PULong64
 	me, err := GetCurrentProcess()
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		t.Fatal(err)
 	}
 	if err := QueryProcessCycleTime(me, &cycles); err != nil {
 		if cycles == 0 {
@@ -39,7 +38,7 @@ func TestQueryProcessCycleTime(t *testing.T) {
 }
 
 func ExampleQueryProcessCycleTime() {
-	var cycles windows.PULONG64
+	var cycles windows.PULong64
 	pseudoHandle, err := GetCurrentProcess()
 	if err != nil {
 		panic(err)

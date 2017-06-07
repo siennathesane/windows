@@ -31,7 +31,7 @@ func getprocaddress(handle uintptr, procname *uint8) (proc uintptr, err syscall.
 // A DLL implements access to a single DLL.
 type DLL struct {
 	Name   string
-	Handle HANDLE
+	Handle Handle
 }
 
 // LoadDLL loads DLL file into memory.
@@ -54,7 +54,7 @@ func LoadDLL(name string) (dll *DLL, err error) {
 	}
 	d := &DLL{
 		Name:   name,
-		Handle: HANDLE(h),
+		Handle: Handle(h),
 	}
 	return d, nil
 }
@@ -378,7 +378,7 @@ func loadLibraryEx(name string, system bool) (*DLL, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &DLL{Name: name, Handle: HANDLE(h)}, nil
+	return &DLL{Name: name, Handle: Handle(h)}, nil
 }
 
 type errString string

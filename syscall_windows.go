@@ -2,6 +2,7 @@ package windows
 
 import "syscall"
 
+// Getenv get environment variables via syscall.
 func Getenv(s string) (string, bool) {
 	return syscall.Getenv(s)
 }
