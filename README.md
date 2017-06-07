@@ -1,6 +1,6 @@
 ## windows
 
-[![GoDoc](https://godoc.org/github.com/mxplusb/windows?status.svg)](https://godoc.org/github.com/mxplusb/windows)
+[![GoDoc](https://godoc.org/github.com/mxplusb/windows?status.svg)](https://godoc.org/github.com/mxplusb/windows) [![Build status](https://ci.appveyor.com/api/projects/status/c86d004j0ia1c1fr?svg=true)](https://ci.appveyor.com/project/mxplusb/windows)
 
 This package makes a best-effort attempt at an idiomatic Go interface to making syscalls for Windows.
 
