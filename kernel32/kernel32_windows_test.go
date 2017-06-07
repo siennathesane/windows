@@ -7,6 +7,7 @@ import (
 	"github.com/mxplusb/windows"
 	"github.com/mxplusb/windows/common"
 	"syscall"
+	"time"
 )
 
 func TestGetCurrentProcess(t *testing.T) {
@@ -140,4 +141,28 @@ func TestGetVersion(t *testing.T) {
 		t.Fatal("version is 0")
 	}
 	t.Logf("tested on Windows %d", ver)
+}
+
+func TestInternalCreateDirectory(t *testing.T) {
+	targetDir := NewSecurityAttributes()
+	me, _ := windows.Getenv("USERNAME")
+	targetDirName := fmt.Sprintf("C:\\Users\\%s\\temp-%d", me, time.Now().Nanosecond())
+
+	var byteRef *byte
+	byteRef, err := syscall.BytePtrFromString(targetDirName)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := createDirectory(byteRef, targetDir); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%s created successfully, cleaning up.", targetDirName)
+	tmp, err := syscall.UTF16PtrFromString(targetDirName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := syscall.RemoveDirectory(tmp); err != nil {
+		t.Fatalf("cannot clean up dir %s. %s", targetDirName, GetLastError())
+	}
 }

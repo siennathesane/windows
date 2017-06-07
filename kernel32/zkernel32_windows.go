@@ -46,7 +46,8 @@ var (
 	procGetProcAddress        = modkernel32.NewProc("GetProcAddress")
 	procGetVersion            = modkernel32.NewProc("GetVersion")
 	procGetComputerNameW      = modkernel32.NewProc("GetComputerNameW")
-	procGetUserName           = modkernel32.NewProc("GetUserName")
+	procGetUserNameW          = modkernel32.NewProc("GetUserNameW")
+	procCreateDirectoryW      = modkernel32.NewProc("CreateDirectoryW")
 )
 
 // GetCurrentProcess retrieves a pseudo handle for the current process. See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms683179%28v=vs.85%29.aspx
@@ -152,7 +153,19 @@ func getComputerName(lpBuffer *windows.LptStr, lpnSize *windows.LpdWord) (err er
 }
 
 func getUserName(lpbuffer *windows.LptStr, lpnSize *windows.LpdWord) (err error) {
-	r1, _, e1 := syscall.Syscall(procGetUserName.Addr(), 2, uintptr(unsafe.Pointer(lpbuffer)), uintptr(unsafe.Pointer(lpnSize)), 0)
+	r1, _, e1 := syscall.Syscall(procGetUserNameW.Addr(), 2, uintptr(unsafe.Pointer(lpbuffer)), uintptr(unsafe.Pointer(lpnSize)), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func createDirectory(lpPathName *byte, lpSecurityAttributes *SecurityAttributes) (err error) {
+	r1, _, e1 := syscall.Syscall(procCreateDirectoryW.Addr(), 2, uintptr(unsafe.Pointer(lpPathName)), uintptr(unsafe.Pointer(lpSecurityAttributes)), 0)
 	if r1 == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)

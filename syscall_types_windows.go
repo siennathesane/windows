@@ -9,6 +9,7 @@ type (
 	LptStr uint16
 	LpcStr string
 	LpdWord uint32
+	LpVoid interface{}
 	PULong64 uint64
 	SizeT uintptr
 )

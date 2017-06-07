@@ -16,3 +16,4 @@ package kernel32
 
 //sys	getComputerName(lpBuffer *windows.LptStr, lpnSize *windows.LpdWord) (err error) = GetComputerNameW
 //sys	getUserName(lpbuffer *windows.LptStr, lpnSize *windows.LpdWord) (err error) = GetUserNameW
+//sys	createDirectory(lpPathName *byte, lpSecurityAttributes *SecurityAttributes) (err error) = CreateDirectoryW

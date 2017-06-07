@@ -18,3 +18,16 @@ func GetComputerName() (string, error) {
 	}
 	return common.LptStrToString(localBuffer), nil
 }
+
+type SecurityAttributes struct {
+	// The size, in bytes, of this structure.
+	nLength              windows.Dword
+	// A pointer to a SECURITY_DESCRIPTOR structure that controls access to the object. If the value of this member is NULL, the object is assigned the default security descriptor associated with the access token of the calling process.
+	lpSecurityDescriptor windows.LpVoid
+	// A Boolean value that specifies whether the returned handle is inherited when a new process is created.
+	bInheritHandle       bool
+}
+
+func NewSecurityAttributes() *SecurityAttributes {
+	return &SecurityAttributes{nLength: 64}
+}
