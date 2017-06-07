@@ -12,10 +12,10 @@ import (
 
 const (
 	// bit pair values for rune manipulation.
-	surr1 = 0xd800
-	surr2 = 0xdc00
-	surr3 = 0xe000
-	surrSelf = 0x10000
+	surr1           = 0xd800
+	surr2           = 0xdc00
+	surr3           = 0xe000
+	surrSelf        = 0x10000
 	replacementChar = '\uFFFD'
 )
 
@@ -28,11 +28,11 @@ func LptStrToString(s []windows.LptStr) string {
 		// if the surrounding bits pairs are valid, we know this bit is a rune.
 		case r < surr1, surr3 <= r:
 			a[n] = rune(r)
-		// basically, we have no idea what it is, so go ahead and decode it.
+			// basically, we have no idea what it is, so go ahead and decode it.
 		case surr1 <= r && r < surr2 && i+1 < len(s) && surr2 <= s[i+1] && s[i+1] < surr3:
 			a[n] = utf16.DecodeRune(rune(r), rune(s[i+1]))
 			i++
-		// if we still can't figure it out, we'll use the default character.
+			// if we still can't figure it out, we'll use the default character.
 		default:
 			a[n] = replacementChar
 		}

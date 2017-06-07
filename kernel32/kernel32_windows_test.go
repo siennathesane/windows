@@ -6,6 +6,7 @@ import (
 
 	"github.com/mxplusb/windows"
 	"github.com/mxplusb/windows/common"
+	"syscall"
 )
 
 func TestGetCurrentProcess(t *testing.T) {
@@ -72,4 +73,60 @@ func TestGetComputerName(t *testing.T) {
 		t.Fatal("computer name is empty!")
 	}
 	t.Logf("computer name is %s", me)
+}
+
+func TestLoadLibrary(t *testing.T) {
+	lpHandle, err := LoadLibrary("psapi.dll")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if lpHandle == 0 {
+		t.Fatal("handle is empty")
+	}
+	t.Logf("handle for psapi.dll is %d", lpHandle)
+}
+
+func TestInternalGetProcAddress(t *testing.T) {
+	// load something else not already loaded.
+	psapi, err := LoadLibrary("psapi.dll")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var byteRef *byte
+	byteRef, err = syscall.BytePtrFromString("GetPerformanceInfo")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	addr, err := GetProcAddress(psapi, byteRef)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if addr == 0 {
+		t.Fatal("proc address is 0")
+	}
+	t.Logf("GetperformanceInfo is at %d", addr)
+}
+
+func ExampleGetProcAddress() {
+	// let's load a DLL to see if there's a function in it.
+	psapiDll, err := LoadLibrary("psapi.dll")
+	if err != nil {
+		panic(err)
+	}
+
+	// because GetProcAddress requires a byte pointer, let's do the conversion.
+	// we're looking for the GetPerformanceInfo API.
+	var byteRef *byte
+	byteRef, err = syscall.BytePtrFromString("GetPerformanceInfo")
+	if err != nil {
+		panic(err)
+	}
+
+	addr, err := GetProcAddress(psapiDll, byteRef)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("GetPerformanceInfo is at %d", addr)
 }

@@ -42,6 +42,8 @@ var (
 	procGetCurrentProcess     = modkernel32.NewProc("GetCurrentProcess")
 	procQueryProcessCycleTime = modkernel32.NewProc("QueryProcessCycleTime")
 	procGetLastError          = modkernel32.NewProc("GetLastError")
+	procLoadLibraryW          = modkernel32.NewProc("LoadLibraryW")
+	procGetProcAddress        = modkernel32.NewProc("GetProcAddress")
 	procGetComputerNameW      = modkernel32.NewProc("GetComputerNameW")
 )
 
@@ -76,6 +78,42 @@ func QueryProcessCycleTime(handle windows.Handle, cycleTime *windows.PULong64) (
 func GetLastError() (err error) {
 	r1, _, e1 := syscall.Syscall(procGetLastError.Addr(), 0, 0, 0, 0)
 	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func LoadLibrary(lpFileName string) (handle windows.Handle, err error) {
+	var _p0 *uint16
+	_p0, err = syscall.UTF16PtrFromString(lpFileName)
+	if err != nil {
+		return
+	}
+	return _LoadLibrary(_p0)
+}
+
+func _LoadLibrary(lpFileName *uint16) (handle windows.Handle, err error) {
+	r0, _, e1 := syscall.Syscall(procLoadLibraryW.Addr(), 1, uintptr(unsafe.Pointer(lpFileName)), 0, 0)
+	handle = windows.Handle(r0)
+	if handle == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+// GetProcAddress retrieves the address of an exported function or variable from the specified dynamic-link library (DLL). See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms683212(v=vs.85).aspx
+func GetProcAddress(hModule windows.Handle, lpProcName *byte) (addr windows.SizeT, err error) {
+	r0, _, e1 := syscall.Syscall(procGetProcAddress.Addr(), 2, uintptr(hModule), uintptr(unsafe.Pointer(lpProcName)), 0)
+	addr = windows.SizeT(r0)
+	if addr == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)
 		} else {
