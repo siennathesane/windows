@@ -41,8 +41,11 @@ var (
 
 	procGetCurrentProcess     = modkernel32.NewProc("GetCurrentProcess")
 	procQueryProcessCycleTime = modkernel32.NewProc("QueryProcessCycleTime")
+	procGetLastError          = modkernel32.NewProc("GetLastError")
+	procGetComputerNameW      = modkernel32.NewProc("GetComputerNameW")
 )
 
+// GetCurrentProcess retrieves a pseudo handle for the current process. See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms683179%28v=vs.85%29.aspx
 func GetCurrentProcess() (pseudoHandle windows.Handle, err error) {
 	r0, _, e1 := syscall.Syscall(procGetCurrentProcess.Addr(), 0, 0, 0, 0)
 	pseudoHandle = windows.Handle(r0)
@@ -56,8 +59,34 @@ func GetCurrentProcess() (pseudoHandle windows.Handle, err error) {
 	return
 }
 
+// QueryProcessCycleTime retrieves the sum of the cycle time of all threads of the specified process.
 func QueryProcessCycleTime(handle windows.Handle, cycleTime *windows.PULong64) (err error) {
 	r1, _, e1 := syscall.Syscall(procQueryProcessCycleTime.Addr(), 2, uintptr(handle), uintptr(unsafe.Pointer(cycleTime)), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+// GetLastError retrieves the calling thread's last-error code value. The last-error code is maintained on a per-thread basis. Multiple threads do not overwrite each other's last-error code.
+func GetLastError() (err error) {
+	r1, _, e1 := syscall.Syscall(procGetLastError.Addr(), 0, 0, 0, 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func getComputerName(lpBuffer *windows.LptStr, lpnSize *windows.LpdWord) (err error) {
+	r1, _, e1 := syscall.Syscall(procGetComputerNameW.Addr(), 2, uintptr(unsafe.Pointer(lpBuffer)), uintptr(unsafe.Pointer(lpnSize)), 0)
 	if r1 == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)

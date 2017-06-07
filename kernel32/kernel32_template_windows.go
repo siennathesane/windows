@@ -5,3 +5,9 @@ package kernel32
 
 //sysdoc	QueryProcessCycleTime retrieves the sum of the cycle time of all threads of the specified process.
 //sys	QueryProcessCycleTime(handle windows.Handle, cycleTime *windows.PULong64) (err error)
+
+//sysdoc	GetLastError retrieves the calling thread's last-error code value. The last-error code is maintained on a per-thread basis. Multiple threads do not overwrite each other's last-error code.
+//sys	GetLastError() (err error)
+
+
+//sys	getComputerName(lpBuffer *windows.LptStr, lpnSize *windows.LpdWord) (err error) = GetComputerNameW

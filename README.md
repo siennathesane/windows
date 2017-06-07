@@ -20,6 +20,7 @@ To add syscalls:
     * And a test for that method receiver.
     * Hint: Just look at the syscall examples in the code. :smile:
   * Write an example if possible!
+  * Tests are designed to help you understand what the API feels like, if it feels clunky, then write a wrapper for it. :smile:
 * Submit a PR! This package can't grow without your help, let's make it awesome!
 
 ### Why `github.com/mxplusb/windows` instead of `golang.org/x/sys/windows`?
@@ -43,7 +44,7 @@ Because nothing in life is free, there are some tradeoffs when consuming this pa
 * To provide a simple interface on method receivers, we do a deep copy from the unexported syscall.
   * While not slow, there is a lot of reflection that takes place.
   * Deep copies are `O(n^2)` complexity, so on large structs, there is a time tradeoff for a simple interface.
-* Sometimes there is a little indirection under the hood.
+* Sometimes there is a little indirection under the hood to make it more user friendly.
 
 ### Getting Help
 
