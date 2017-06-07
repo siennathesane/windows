@@ -16,3 +16,5 @@ build_script:
   - go test -v
   - cd ..\psapi
   - go test -v
+  - cd ..\advapi32
+  - go test -v
