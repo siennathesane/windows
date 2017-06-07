@@ -44,7 +44,9 @@ var (
 	procGetLastError          = modkernel32.NewProc("GetLastError")
 	procLoadLibraryW          = modkernel32.NewProc("LoadLibraryW")
 	procGetProcAddress        = modkernel32.NewProc("GetProcAddress")
+	procGetVersion            = modkernel32.NewProc("GetVersion")
 	procGetComputerNameW      = modkernel32.NewProc("GetComputerNameW")
+	procGetUserName           = modkernel32.NewProc("GetUserName")
 )
 
 // GetCurrentProcess retrieves a pseudo handle for the current process. See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms683179%28v=vs.85%29.aspx
@@ -123,8 +125,34 @@ func GetProcAddress(hModule windows.Handle, lpProcName *byte) (addr windows.Size
 	return
 }
 
+// GetVersion returns the OS version. See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms724439(v=vs.85).aspx
+func GetVersion() (ver windows.Dword, err error) {
+	r0, _, e1 := syscall.Syscall(procGetVersion.Addr(), 0, 0, 0, 0)
+	ver = windows.Dword(r0)
+	if ver == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
 func getComputerName(lpBuffer *windows.LptStr, lpnSize *windows.LpdWord) (err error) {
 	r1, _, e1 := syscall.Syscall(procGetComputerNameW.Addr(), 2, uintptr(unsafe.Pointer(lpBuffer)), uintptr(unsafe.Pointer(lpnSize)), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func getUserName(lpbuffer *windows.LptStr, lpnSize *windows.LpdWord) (err error) {
+	r1, _, e1 := syscall.Syscall(procGetUserName.Addr(), 2, uintptr(unsafe.Pointer(lpbuffer)), uintptr(unsafe.Pointer(lpnSize)), 0)
 	if r1 == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)

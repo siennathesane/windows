@@ -10,6 +10,9 @@ package kernel32
 //sys	LoadLibrary(lpFileName string) (handle windows.Handle, err error) = LoadLibraryW
 //sysdoc	GetProcAddress retrieves the address of an exported function or variable from the specified dynamic-link library (DLL). See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms683212(v=vs.85).aspx
 //sys	GetProcAddress(hModule windows.Handle, lpProcName *byte) (addr windows.SizeT, err error)
+//sysdoc	GetVersion returns the OS version. See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms724439(v=vs.85).aspx
+//sys	GetVersion() (ver windows.Dword, err error)
+
 
 //sys	getComputerName(lpBuffer *windows.LptStr, lpnSize *windows.LpdWord) (err error) = GetComputerNameW
-
+//sys	getUserName(lpbuffer *windows.LptStr, lpnSize *windows.LpdWord) (err error) = GetUserNameW

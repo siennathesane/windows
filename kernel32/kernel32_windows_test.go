@@ -86,7 +86,7 @@ func TestLoadLibrary(t *testing.T) {
 	t.Logf("handle for psapi.dll is %d", lpHandle)
 }
 
-func TestInternalGetProcAddress(t *testing.T) {
+func TestGetProcAddress(t *testing.T) {
 	// load something else not already loaded.
 	psapi, err := LoadLibrary("psapi.dll")
 	if err != nil {
@@ -129,4 +129,15 @@ func ExampleGetProcAddress() {
 		panic(err)
 	}
 	fmt.Printf("GetPerformanceInfo is at %d", addr)
+}
+
+func TestGetVersion(t *testing.T) {
+	ver, err := GetVersion()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ver == 0 {
+		t.Fatal("version is 0")
+	}
+	t.Logf("tested on Windows %d", ver)
 }
