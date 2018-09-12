@@ -9,5 +9,13 @@ package kernel32
 //sysdoc	GetLastError retrieves the calling thread's last-error code value. The last-error code is maintained on a per-thread basis. Multiple threads do not overwrite each other's last-error code.
 //sys	GetLastError() (err error)
 
+//sysdoc	CreatePseudoConsole creates a new pseudoconsole object for the calling process. See: https://docs.microsoft.com/en-us/windows/console/createpseudoconsole
+//sys	CreatePseudoConsole(size windows.COORD, hInput windows.Handle, hOutput windows.Handle, dwFlags windows.Dword, phPC *windows.HpCon) (err error) = CreatePseudoConsole
+
+//sysdoc	ResizePseudoConsole resizes the internal buffers for a pseudoconsole to the given size. See: https://docs.microsoft.com/en-us/windows/console/resizepseudoconsole
+//sys	ResizePseudoConsole(hPC windows.HpCon, size windows.COORD) (err error) = ResizePseudoConsole
+
+//sysdoc	ClosePseudoConsole closes a pseudoconsole from the given handle. See: https://docs.microsoft.com/en-us/windows/console/closepseudoconsole
+//sys	ClosePseudoConsole(hPC windows.HpCon) (err error) = ClosePseudoConsole
 
 //sys	getComputerName(lpBuffer *windows.LptStr, lpnSize *windows.LpdWord) (err error) = GetComputerNameW

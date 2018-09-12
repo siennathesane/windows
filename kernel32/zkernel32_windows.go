@@ -42,6 +42,9 @@ var (
 	procGetCurrentProcess     = modkernel32.NewProc("GetCurrentProcess")
 	procQueryProcessCycleTime = modkernel32.NewProc("QueryProcessCycleTime")
 	procGetLastError          = modkernel32.NewProc("GetLastError")
+	procCreatePseudoConsole   = modkernel32.NewProc("CreatePseudoConsole")
+	procResizePseudoConsole   = modkernel32.NewProc("ResizePseudoConsole")
+	procClosePseudoConsole    = modkernel32.NewProc("ClosePseudoConsole")
 	procGetComputerNameW      = modkernel32.NewProc("GetComputerNameW")
 )
 
@@ -75,6 +78,45 @@ func QueryProcessCycleTime(handle windows.Handle, cycleTime *windows.PULong64) (
 // GetLastError retrieves the calling thread's last-error code value. The last-error code is maintained on a per-thread basis. Multiple threads do not overwrite each other's last-error code.
 func GetLastError() (err error) {
 	r1, _, e1 := syscall.Syscall(procGetLastError.Addr(), 0, 0, 0, 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+// CreatePseudoConsole creates a new pseudoconsole object for the calling process. See: https://docs.microsoft.com/en-us/windows/console/createpseudoconsole
+func CreatePseudoConsole(size windows.COORD, hInput windows.Handle, hOutput windows.Handle, dwFlags windows.Dword, phPC *windows.HpCon) (err error) {
+	r1, _, e1 := syscall.Syscall6(procCreatePseudoConsole.Addr(), 5, uintptr(unsafe.Alignof(size)), uintptr(hInput), uintptr(hOutput), uintptr(dwFlags), uintptr(unsafe.Pointer(phPC)), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+// ResizePseudoConsole resizes the internal buffers for a pseudoconsole to the given size. See: https://docs.microsoft.com/en-us/windows/console/resizepseudoconsole
+func ResizePseudoConsole(hPC windows.HpCon, size windows.COORD) (err error) {
+	r1, _, e1 := syscall.Syscall(procResizePseudoConsole.Addr(), 2, uintptr(hPC), uintptr(unsafe.Alignof(size)), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+// ClosePseudoConsole closes a pseudoconsole from the given handle. See: https://docs.microsoft.com/en-us/windows/console/closepseudoconsole
+func ClosePseudoConsole(hPC windows.HpCon) (err error) {
+	r1, _, e1 := syscall.Syscall(procClosePseudoConsole.Addr(), 1, uintptr(hPC), 0, 0)
 	if r1 == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)

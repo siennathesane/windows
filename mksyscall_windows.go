@@ -178,6 +178,9 @@ func (p *Param) SyscallArgList() []string {
 	switch {
 	case t[0] == '*':
 		s = fmt.Sprintf("unsafe.Pointer(%s)", p.Name)
+	case p.IsStruct(t):
+		// we need to make sure the structs align properly.
+		s = fmt.Sprintf("unsafe.Alignof(%s)", p.Name)
 	case t == "bool":
 		s = p.tmpVar()
 	case strings.HasPrefix(t, "[]"):
@@ -189,6 +192,20 @@ func (p *Param) SyscallArgList() []string {
 		s = p.Name
 	}
 	return []string{fmt.Sprintf("uintptr(%s)", s)}
+}
+
+// IsStruct does pattern matching on known Windows struct types. Where
+// this is important is when we need to cast a uintptr to a struct, we need
+// to create a buffer, then cast that buffer to the struct type. It's not
+// terribly intuitive.
+func (p *Param) IsStruct(s string) bool {
+	var knownStructs = []string{"COORD"}
+	for idx, _ := range knownStructs {
+		if strings.Contains(s, knownStructs[idx]) {
+			return true
+		}
+	}
+	return false
 }
 
 // IsError determines if p parameter is used to return error.
