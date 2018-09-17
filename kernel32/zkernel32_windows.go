@@ -45,6 +45,8 @@ var (
 	procCreatePseudoConsole   = modkernel32.NewProc("CreatePseudoConsole")
 	procResizePseudoConsole   = modkernel32.NewProc("ResizePseudoConsole")
 	procClosePseudoConsole    = modkernel32.NewProc("ClosePseudoConsole")
+	procCreatePipe            = modkernel32.NewProc("CreatePipe")
+	procCloseHandle           = modkernel32.NewProc("CloseHandle")
 	procGetComputerNameW      = modkernel32.NewProc("GetComputerNameW")
 )
 
@@ -89,8 +91,8 @@ func GetLastError() (err error) {
 }
 
 // CreatePseudoConsole creates a new pseudoconsole object for the calling process. See: https://docs.microsoft.com/en-us/windows/console/createpseudoconsole
-func CreatePseudoConsole(size windows.COORD, hInput windows.Handle, hOutput windows.Handle, dwFlags windows.Dword, phPC *windows.HpCon) (err error) {
-	r1, _, e1 := syscall.Syscall6(procCreatePseudoConsole.Addr(), 5, uintptr(unsafe.Alignof(size)), uintptr(hInput), uintptr(hOutput), uintptr(dwFlags), uintptr(unsafe.Pointer(phPC)), 0)
+func CreatePseudoConsole(size *windows.COORD, hInput windows.Handle, hOutput windows.Handle, dwFlags windows.Dword, phPC *windows.HpCon) (err error) {
+	r1, _, e1 := syscall.Syscall6(procCreatePseudoConsole.Addr(), 5, uintptr(unsafe.Pointer(size)), uintptr(hInput), uintptr(hOutput), uintptr(dwFlags), uintptr(unsafe.Pointer(phPC)), 0)
 	if r1 == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)
@@ -102,8 +104,8 @@ func CreatePseudoConsole(size windows.COORD, hInput windows.Handle, hOutput wind
 }
 
 // ResizePseudoConsole resizes the internal buffers for a pseudoconsole to the given size. See: https://docs.microsoft.com/en-us/windows/console/resizepseudoconsole
-func ResizePseudoConsole(hPC windows.HpCon, size windows.COORD) (err error) {
-	r1, _, e1 := syscall.Syscall(procResizePseudoConsole.Addr(), 2, uintptr(hPC), uintptr(unsafe.Alignof(size)), 0)
+func ResizePseudoConsole(hPC windows.HpCon, size *windows.COORD) (err error) {
+	r1, _, e1 := syscall.Syscall(procResizePseudoConsole.Addr(), 2, uintptr(hPC), uintptr(unsafe.Pointer(size)), 0)
 	if r1 == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)
@@ -124,6 +126,20 @@ func ClosePseudoConsole(hPC windows.HpCon) (err error) {
 			err = syscall.EINVAL
 		}
 	}
+	return
+}
+
+// CreatePipe creates an anonymous pipe, and returns handles to the read and write ends of the pipe.
+func CreatePipe(hReadPipe *windows.Handle, hWritePipe *windows.Handle, lpPipeAttributes *windows.SecurityAttributes, nSize windows.Dword) (ok bool) {
+	r0, _, _ := syscall.Syscall6(procCreatePipe.Addr(), 4, uintptr(unsafe.Pointer(hReadPipe)), uintptr(unsafe.Pointer(hWritePipe)), uintptr(unsafe.Pointer(lpPipeAttributes)), uintptr(nSize), 0, 0)
+	ok = r0 != 0
+	return
+}
+
+// CloseHandle closes an open object handle. See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms724211(v=vs.85).aspx
+func CloseHandle(hObject windows.Handle) (ok bool) {
+	r0, _, _ := syscall.Syscall(procCloseHandle.Addr(), 1, uintptr(hObject), 0, 0)
+	ok = r0 != 0
 	return
 }
 

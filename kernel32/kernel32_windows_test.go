@@ -73,3 +73,38 @@ func TestGetComputerName(t *testing.T) {
 	}
 	t.Logf("computer name is %s", me)
 }
+
+func TestCreatePipe(t *testing.T) {
+	winAttr := &windows.SecurityAttributes{
+		NLength: windows.Dword(64),
+		BInheritHandle: true,
+	}
+	hReadPipe := windows.Handle(0)
+	hWritePipe := windows.Handle(0)
+	ok := CreatePipe(&hReadPipe, &hWritePipe, winAttr, 0)
+	if !ok {
+		t.Fatal(GetLastError())
+	}
+}
+
+func TestCloseHandle(t *testing.T) {
+	winAttr := &windows.SecurityAttributes{
+		NLength: windows.Dword(64),
+		BInheritHandle: true,
+	}
+	hReadPipe := windows.Handle(0)
+	hWritePipe := windows.Handle(0)
+	ok := CreatePipe(&hReadPipe, &hWritePipe, winAttr, 0)
+	if !ok {
+		t.Fatal(GetLastError())
+	}
+
+	ok = CloseHandle(hWritePipe)
+	if !ok {
+		t.Fatal(GetLastError())
+	}
+	ok = CloseHandle(hReadPipe)
+	if !ok {
+		t.Fatal(GetLastError())
+	}
+}
