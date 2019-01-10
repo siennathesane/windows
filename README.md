@@ -2,7 +2,7 @@
 
 [![GoDoc](https://godoc.org/github.com/mxplusb/windows?status.svg)](https://godoc.org/github.com/mxplusb/windows) [![Build status](https://ci.appveyor.com/api/projects/status/c86d004j0ia1c1fr?svg=true)](https://ci.appveyor.com/project/mxplusb/windows)
 
-This package makes a best-effort attempt at an idiomatic Go interface to making syscalls for Windows. This package is licensed under the MIT license framework, but there is some code within this package is licensed separately because it came from other places. For the most part, you should be able to consume this code as is, but always do due diligence on licensing. 
+This package makes a best-effort attempt at an idiomatic Go interface to making syscalls for Windows.
 
 ### Contributing
 
@@ -38,7 +38,7 @@ I felt it was more important to have:
   * It should be exceedingly obvious what the syscall does.
   * There should be examples when possible! You shouldn't have to go to Stack Overflow just to understand an interface.
 
-Because nothing in life is free, there are some tradeoffs when consuming this package instead of `golang.org/x/sys/windows`.
+There are some tradeoffs when consuming this package instead of `golang.org/x/sys/windows`.
 
 * To provide a simple interface on method receivers, we do a deep copy from the unexported syscall.
   * While not slow, there is a lot of reflection that takes place.
@@ -48,10 +48,3 @@ Because nothing in life is free, there are some tradeoffs when consuming this pa
 ### Getting Help
 
 If you don't understand how something works, please file an issue asking for help so you can get some! Or feel free to email me from my Github email, I'll help you understand how it works as much as I can.
-
-### Credit
-
-I did not write all of this by myself. Some of this code existed in other places.
-
-* DeepCopy: [Jinzhu](https://github.com/jinzhu)
-* Go Authors

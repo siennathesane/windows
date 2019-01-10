@@ -47,6 +47,11 @@ var (
 	procClosePseudoConsole    = modkernel32.NewProc("ClosePseudoConsole")
 	procCreatePipe            = modkernel32.NewProc("CreatePipe")
 	procCloseHandle           = modkernel32.NewProc("CloseHandle")
+	procCreateProcessW        = modkernel32.NewProc("CreateProcessW")
+	procReadFile              = modkernel32.NewProc("ReadFile")
+	procTerminateProcess      = modkernel32.NewProc("TerminateProcess")
+	procOpenProcess           = modkernel32.NewProc("OpenProcess")
+	procEnumProcess           = modkernel32.NewProc("EnumProcess")
 	procGetComputerNameW      = modkernel32.NewProc("GetComputerNameW")
 )
 
@@ -139,6 +144,57 @@ func CreatePipe(hReadPipe *windows.Handle, hWritePipe *windows.Handle, lpPipeAtt
 // CloseHandle closes an open object handle. See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms724211(v=vs.85).aspx
 func CloseHandle(hObject windows.Handle) (ok bool) {
 	r0, _, _ := syscall.Syscall(procCloseHandle.Addr(), 1, uintptr(hObject), 0, 0)
+	ok = r0 != 0
+	return
+}
+
+// CreateProcess creates a new process and its primary thread. The new process runs in the security context of the calling process. See: https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-createprocessa
+func CreateProcess(lpApplicationName *windows.LpcStr, lpCommandLine *windows.LpStr, lpProcessAtrributes *windows.SecurityAttributes, lpThreadAttributes *windows.SecurityAttributes, bInheritThreadHandles bool, dwCreationFlags windows.Dword, lpEnvironment *windows.LpVoid, lpCurrentDirectory *windows.LpcStr, lpStartupInfo *windows.StartupInfo, lpProcessInformation *windows.ProcessInformation) (ok bool) {
+	var _p0 uint32
+	if bInheritThreadHandles {
+		_p0 = 1
+	} else {
+		_p0 = 0
+	}
+	r0, _, _ := syscall.Syscall12(procCreateProcessW.Addr(), 10, uintptr(unsafe.Pointer(lpApplicationName)), uintptr(unsafe.Pointer(lpCommandLine)), uintptr(unsafe.Pointer(lpProcessAtrributes)), uintptr(unsafe.Pointer(lpThreadAttributes)), uintptr(_p0), uintptr(dwCreationFlags), uintptr(unsafe.Pointer(lpEnvironment)), uintptr(unsafe.Pointer(lpCurrentDirectory)), uintptr(unsafe.Pointer(lpStartupInfo)), uintptr(unsafe.Pointer(lpProcessInformation)), 0, 0)
+	ok = r0 != 0
+	return
+}
+
+// ReadFile reads data from the specified file or input/output (I/O) device. Reads occur at the position specified by the file pointer if supported by the device. See: https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-readfile
+func ReadFile(hFile windows.Handle, lpBuffer []byte, nNumberOfBytesToRead windows.Dword, lpOverlapped *windows.Overlapped) (ok bool) {
+	var _p0 *byte
+	if len(lpBuffer) > 0 {
+		_p0 = &lpBuffer[0]
+	}
+	r0, _, _ := syscall.Syscall6(procReadFile.Addr(), 5, uintptr(hFile), uintptr(unsafe.Pointer(_p0)), uintptr(len(lpBuffer)), uintptr(nNumberOfBytesToRead), uintptr(unsafe.Pointer(lpOverlapped)), 0)
+	ok = r0 != 0
+	return
+}
+
+// TerminateProcess terminates the specified process and all of its threads.
+func TerminateProcess(hProcess windows.Handle, uExitCode uint) (ok bool) {
+	r0, _, _ := syscall.Syscall(procTerminateProcess.Addr(), 2, uintptr(hProcess), uintptr(uExitCode), 0)
+	ok = r0 != 0
+	return
+}
+
+// OpenProcess opens an existing local process object.
+func OpenProcess(dwDesiredAccess windows.Dword, bInheritHandle bool, dwProcessId windows.Dword) (handle windows.Handle) {
+	var _p0 uint32
+	if bInheritHandle {
+		_p0 = 1
+	} else {
+		_p0 = 0
+	}
+	r0, _, _ := syscall.Syscall(procOpenProcess.Addr(), 3, uintptr(dwDesiredAccess), uintptr(_p0), uintptr(dwProcessId))
+	handle = windows.Handle(r0)
+	return
+}
+
+// EnumProcesses retrieves the process identifier for each process object in the system.
+func EnumProcesses(lpidProcess *[]byte, cb windows.Dword, lpcbNeeded *windows.LpDword) (ok bool) {
+	r0, _, _ := syscall.Syscall(procEnumProcess.Addr(), 3, uintptr(unsafe.Pointer(lpidProcess)), uintptr(cb), uintptr(unsafe.Pointer(lpcbNeeded)))
 	ok = r0 != 0
 	return
 }

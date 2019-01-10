@@ -25,21 +25,15 @@ package kernel32
 //sys	CloseHandle(hObject windows.Handle) (ok bool) = CloseHandle
 
 //sysdoc CreateProcess creates a new process and its primary thread. The new process runs in the security context of the calling process. See: https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-createprocessa
-//sys	CreateProcess(lpApplicationName windows.LpcStr, lpCommandLine windows.LpStr, lpProcessAtrributes *windows.SecurityAttributes, lpThreadAttributes *windows.SecurityAttributes, bInheritThreadHandles bool, dwCreationFlags windows.Dword, lpEnvironment windows.LpVoid, lpCurrentDirectory windows.LpcStr, lpStartupInfo *windows.StartupInfo, lpProcessInformation *windows.ProcessInformation
+//sys	CreateProcess(lpApplicationName *windows.LpcStr, lpCommandLine *windows.LpStr, lpProcessAtrributes *windows.SecurityAttributes, lpThreadAttributes *windows.SecurityAttributes, bInheritThreadHandles bool, dwCreationFlags windows.Dword, lpEnvironment *windows.LpVoid, lpCurrentDirectory *windows.LpcStr, lpStartupInfo *windows.StartupInfo, lpProcessInformation *windows.ProcessInformation) (ok bool) = CreateProcessW
 
-/*
-BOOL CreateProcessA(
-  LPCSTR                lpApplicationName,
-  LPSTR                 lpCommandLine,
-  LPSECURITY_ATTRIBUTES lpProcessAttributes,
-  LPSECURITY_ATTRIBUTES lpThreadAttributes,
-  BOOL                  bInheritHandles,
-  DWORD                 dwCreationFlags,
-  LPVOID                lpEnvironment,
-  LPCSTR                lpCurrentDirectory,
-  LPSTARTUPINFOA        lpStartupInfo,
-  LPPROCESS_INFORMATION lpProcessInformation
-);
- */
+//sysdoc	ReadFile reads data from the specified file or input/output (I/O) device. Reads occur at the position specified by the file pointer if supported by the device. See: https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-readfile
+//sys	ReadFile(hFile windows.Handle, lpBuffer []byte, nNumberOfBytesToRead windows.Dword, lpOverlapped *windows.Overlapped) (ok bool) = ReadFile
+
+//sysdoc	TerminateProcess terminates the specified process and all of its threads.
+//sys	TerminateProcess(hProcess windows.Handle, uExitCode uint) (ok bool) = TerminateProcess
+
+//sysdoc	OpenProcess opens an existing local process object.
+//sys	OpenProcess(dwDesiredAccess windows.Dword, bInheritHandle bool, dwProcessId windows.Dword) (handle windows.Handle) = OpenProcess
 
 //sys	getComputerName(lpBuffer *windows.LptStr, lpnSize *windows.LpdWord) (err error) = GetComputerNameW

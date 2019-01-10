@@ -46,3 +46,4 @@ crashlytics-build.properties
 fabric.properties
 
 /mksyscall_windows.exe
+/mksyscall_windows

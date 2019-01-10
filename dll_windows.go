@@ -169,7 +169,7 @@ func (p *Proc) Call(a ...uintptr) (r1, r2 uintptr, lastErr error) {
 
 // A LazyDLL implements access to a single DLL.
 // It will delay the load of the DLL until the first
-// call to its Handle method or to one of its
+// call to its handle method or to one of its
 // LazyProc's Addr method.
 type LazyDLL struct {
 	Name string
@@ -225,7 +225,7 @@ func (d *LazyDLL) mustLoad() {
 	}
 }
 
-// Handle returns d's module handle.
+// handle returns d's module handle.
 func (d *LazyDLL) Handle() uintptr {
 	d.mustLoad()
 	return uintptr(d.dll.Handle)

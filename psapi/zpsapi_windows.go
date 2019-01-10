@@ -41,6 +41,7 @@ var (
 
 	procGetProcessMemoryInfo = modpsapi.NewProc("GetProcessMemoryInfo")
 	procGetPerformanceInfo   = modpsapi.NewProc("GetPerformanceInfo")
+	procEnumProcesses        = modpsapi.NewProc("EnumProcesses")
 )
 
 func getProcessMemoryInfo(handle windows.Handle, memCounters *ProcessMemoryCounters, cb windows.Dword) (err error) {
@@ -64,5 +65,12 @@ func getPerformanceInfo(perfInfo *PerformanceInformation, cb windows.Dword) (err
 			err = syscall.EINVAL
 		}
 	}
+	return
+}
+
+// EnumProcesses retrieves the process identifier for each process object in the system.
+func EnumProcesses(lpidProcess *[]byte, cb windows.Dword, lpcbNeeded *windows.LpDword) (ok bool) {
+	r0, _, _ := syscall.Syscall(procEnumProcesses.Addr(), 3, uintptr(unsafe.Pointer(lpidProcess)), uintptr(cb), uintptr(unsafe.Pointer(lpcbNeeded)))
+	ok = r0 != 0
 	return
 }

@@ -1,7 +1,5 @@
 package windows
 
-import "syscall"
-
 type (
 	Bool bool
 	Byte byte
@@ -12,23 +10,32 @@ type (
 	Dword64 int64
 	Handle uintptr
 	HpCon uintptr
-	LpcStr []uint16
+	LpByte byte
+	LpDword uint32
+	LpcStr uint16
 	LpStr uint16
 	LptStr uint16
 	LpdWord uint32
-	LpVoid uintptr
+	LpVoid uint16
+	LpVoidByte byte
 	PULong64 uint64
 	Short uint16
 	SizeT uintptr
+	Word uint16
 )
-
-func StringToLpcStr(s string) ([]uint16, error) {
-	return syscall.UTF16FromString(s)
-}
 
 type COORD struct {
 	X Short
 	Y Short
+}
+
+// Overlapped contains information used in asynchronous (or overlapped) input and output (I/O). See: https://docs.microsoft.com/en-us/windows/desktop/api/minwinbase/ns-minwinbase-_overlapped
+type Overlapped struct {
+	Internal     uintptr
+	InternalHigh uintptr
+	Offset       uint32
+	OffsetHigh   uint32
+	HEvent       Handle
 }
 
 // ProcessInformation aligns with PROCESS_INFORMATION. See: https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/ns-processthreadsapi-_process_information
@@ -45,28 +52,23 @@ type SecurityAttributes struct {
 	BInheritHandle       bool
 }
 
-type StartupInfoA struct {
-	Cb         Dword
-	LpReserved LpcStr
-	LpDesktop LpStr
-	LpTitle LpStr
-	DwX Dword
-	
-	LPSTR      lpDesktop;
-	LPSTR      lpTitle;
-	DWORD      dwX;
-	DWORD      dwY;
-	DWORD      dwXSize;
-	DWORD      dwYSize;
-	DWORD      dwXCountChars;
-	DWORD      dwYCountChars;
-	DWORD      dwFillAttribute;
-	DWORD      dwFlags;
-	WORD       wShowWindow;
-	WORD       cbReserved2;
-	LPBYTE     lpReserved2;
-	HANDLE     hStdInput;
-	HANDLE     hStdOutput;
-	HANDLE     hStdError;
+type StartupInfo struct {
+	Cb              Dword
+	LpReserved      LpcStr
+	LpDesktop       LpStr
+	LpTitle         LpStr
+	DwX             Dword
+	DwY             Dword
+	DwXSize         Dword
+	DwYSize         Dword
+	DwXCountChars   Dword
+	DwYCountChars   Dword
+	DwFillAttribute Dword
+	DwFlags         Dword
+	WShowWindow     Word
+	CbReserved2     Word
+	LpReserved2     LpByte
+	HStdInput       Handle
+	HStdOutput      Handle
+	HStdError       Handle
 }
-STARTUPINFOA
