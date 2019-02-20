@@ -7,6 +7,7 @@ package common
 
 import (
 	"github.com/mxplusb/windows"
+	"syscall"
 	"unicode/utf16"
 )
 
@@ -39,4 +40,14 @@ func LptStrToString(s []windows.LptStr) string {
 		n++
 	}
 	return string(a[:n])
+}
+
+func StringToLpcStrPrt(s string) (*windows.LpcStr, error) {
+	res, err := syscall.UTF16PtrFromString(s)
+	return (*windows.LpcStr)(res), err
+}
+
+func StringToLpStr(s string) (*windows.LpStr, error) {
+	res, err := syscall.UTF16PtrFromString(s)
+	return (*windows.LpStr)(res), err
 }

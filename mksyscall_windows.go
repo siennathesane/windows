@@ -79,6 +79,8 @@ var packageName string
 
 var docStrings = make(map[string]string)
 
+var knownStructs = []string{"COORD", "SecurityAttributes"}
+
 func packagename() string {
 	return packageName
 }
@@ -176,6 +178,11 @@ func (p *Param) SyscallArgList() []string {
 	t := p.HelperType()
 	var s string
 	switch {
+	//case p.IsStructWithPointer(t):
+	//	s = fmt.Sprintf("unsafe.Pointer(unsafe.Alignof(%s))", p.Name)
+	case p.IsStruct(t):
+		// we need to make sure the structs are referenced as unsafe.Pointer().
+		s = fmt.Sprintf("unsafe.Pointer(%s)", p.Name)
 	case t[0] == '*':
 		s = fmt.Sprintf("unsafe.Pointer(%s)", p.Name)
 	case t == "bool":
@@ -189,6 +196,31 @@ func (p *Param) SyscallArgList() []string {
 		s = p.Name
 	}
 	return []string{fmt.Sprintf("uintptr(%s)", s)}
+}
+
+// IsStruct does pattern matching on known Windows struct types. Where
+// this is important is when we need to cast a uintptr to a struct, we need
+// to create a buffer, then cast that buffer to the struct type. It's not
+// terribly intuitive.
+func (p *Param) IsStruct(s string) bool {
+	for idx, _ := range knownStructs {
+		if strings.Contains(s, knownStructs[idx]) {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *Param) IsStructWithPointer(s string) bool {
+	if s[0] != '*' {
+		return false
+	}
+	for idx, _ := range knownStructs {
+		if strings.Contains(s, knownStructs[idx]) {
+			return true
+		}
+	}
+	return false
 }
 
 // IsError determines if p parameter is used to return error.
@@ -330,7 +362,7 @@ type Fn struct {
 	Params      []*Param
 	Rets        *Rets
 	PrintTrace  bool
-	Doc string
+	Doc         string
 	dllname     string
 	dllfuncname string
 	src         string
@@ -403,8 +435,8 @@ func newFn(s string) (*Fn, error) {
 	}
 	f.Name = prefix
 	if val, ok := docStrings[f.Name]; ok {
-				f.Doc = val
-			}
+		f.Doc = val
+	}
 	var err error
 	f.Params, err = extractParams(body, f)
 	if err != nil {
@@ -667,21 +699,21 @@ func (src *Source) ParseFile(path string) error {
 		if len(t) < 7 {
 			continue
 		}
-		if !strings.HasPrefix(t, "//sys") && !strings.HasPrefix(t, "//sysdoc")  {
+		if !strings.HasPrefix(t, "//sys") && !strings.HasPrefix(t, "//sysdoc") {
 			continue
 		}
 		// add the doc strings to the docString map.
-				if strings.HasPrefix(t, "//sysdoc") {
-						localDocString := t[8:]
-						if !(localDocString[0] == ' ' || localDocString[0] == '\t' || localDocString[0:1] == "\t\t") {
-								continue
-							}
-						// grab the function name for the key.
-							fnName := strings.SplitN(localDocString[1:], " ", 2)
-						docStrings[fnName[0]] = localDocString[1:]
-						// move to the next line since this isn't a function line.
-							continue
-					}
+		if strings.HasPrefix(t, "//sysdoc") {
+			localDocString := t[8:]
+			if !(localDocString[0] == ' ' || localDocString[0] == '\t' || localDocString[0:1] == "\t\t") {
+				continue
+			}
+			// grab the function name for the key.
+			fnName := strings.SplitN(localDocString[1:], " ", 2)
+			docStrings[fnName[0]] = localDocString[1:]
+			// move to the next line since this isn't a function line.
+			continue
+		}
 		t = t[5:]
 		if !(t[0] == ' ' || t[0] == '\t') {
 			continue

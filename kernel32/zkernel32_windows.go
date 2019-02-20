@@ -42,6 +42,16 @@ var (
 	procGetCurrentProcess     = modkernel32.NewProc("GetCurrentProcess")
 	procQueryProcessCycleTime = modkernel32.NewProc("QueryProcessCycleTime")
 	procGetLastError          = modkernel32.NewProc("GetLastError")
+	procCreatePseudoConsole   = modkernel32.NewProc("CreatePseudoConsole")
+	procResizePseudoConsole   = modkernel32.NewProc("ResizePseudoConsole")
+	procClosePseudoConsole    = modkernel32.NewProc("ClosePseudoConsole")
+	procCreatePipe            = modkernel32.NewProc("CreatePipe")
+	procCloseHandle           = modkernel32.NewProc("CloseHandle")
+	procCreateProcessW        = modkernel32.NewProc("CreateProcessW")
+	procReadFile              = modkernel32.NewProc("ReadFile")
+	procTerminateProcess      = modkernel32.NewProc("TerminateProcess")
+	procOpenProcess           = modkernel32.NewProc("OpenProcess")
+	procEnumProcess           = modkernel32.NewProc("EnumProcess")
 	procGetComputerNameW      = modkernel32.NewProc("GetComputerNameW")
 )
 
@@ -82,6 +92,110 @@ func GetLastError() (err error) {
 			err = syscall.EINVAL
 		}
 	}
+	return
+}
+
+// CreatePseudoConsole creates a new pseudoconsole object for the calling process. See: https://docs.microsoft.com/en-us/windows/console/createpseudoconsole
+func CreatePseudoConsole(size *windows.COORD, hInput windows.Handle, hOutput windows.Handle, dwFlags windows.Dword, phPC *windows.HpCon) (err error) {
+	r1, _, e1 := syscall.Syscall6(procCreatePseudoConsole.Addr(), 5, uintptr(unsafe.Pointer(size)), uintptr(hInput), uintptr(hOutput), uintptr(dwFlags), uintptr(unsafe.Pointer(phPC)), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+// ResizePseudoConsole resizes the internal buffers for a pseudoconsole to the given size. See: https://docs.microsoft.com/en-us/windows/console/resizepseudoconsole
+func ResizePseudoConsole(hPC windows.HpCon, size *windows.COORD) (err error) {
+	r1, _, e1 := syscall.Syscall(procResizePseudoConsole.Addr(), 2, uintptr(hPC), uintptr(unsafe.Pointer(size)), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+// ClosePseudoConsole closes a pseudoconsole from the given handle. See: https://docs.microsoft.com/en-us/windows/console/closepseudoconsole
+func ClosePseudoConsole(hPC windows.HpCon) (err error) {
+	r1, _, e1 := syscall.Syscall(procClosePseudoConsole.Addr(), 1, uintptr(hPC), 0, 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+// CreatePipe creates an anonymous pipe, and returns handles to the read and write ends of the pipe.
+func CreatePipe(hReadPipe *windows.Handle, hWritePipe *windows.Handle, lpPipeAttributes *windows.SecurityAttributes, nSize windows.Dword) (ok bool) {
+	r0, _, _ := syscall.Syscall6(procCreatePipe.Addr(), 4, uintptr(unsafe.Pointer(hReadPipe)), uintptr(unsafe.Pointer(hWritePipe)), uintptr(unsafe.Pointer(lpPipeAttributes)), uintptr(nSize), 0, 0)
+	ok = r0 != 0
+	return
+}
+
+// CloseHandle closes an open object handle. See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms724211(v=vs.85).aspx
+func CloseHandle(hObject windows.Handle) (ok bool) {
+	r0, _, _ := syscall.Syscall(procCloseHandle.Addr(), 1, uintptr(hObject), 0, 0)
+	ok = r0 != 0
+	return
+}
+
+// CreateProcess creates a new process and its primary thread. The new process runs in the security context of the calling process. See: https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-createprocessa
+func CreateProcess(lpApplicationName *windows.LpcStr, lpCommandLine *windows.LpStr, lpProcessAtrributes *windows.SecurityAttributes, lpThreadAttributes *windows.SecurityAttributes, bInheritThreadHandles bool, dwCreationFlags windows.Dword, lpEnvironment *windows.LpVoid, lpCurrentDirectory *windows.LpcStr, lpStartupInfo *windows.StartupInfo, lpProcessInformation *windows.ProcessInformation) (ok bool) {
+	var _p0 uint32
+	if bInheritThreadHandles {
+		_p0 = 1
+	} else {
+		_p0 = 0
+	}
+	r0, _, _ := syscall.Syscall12(procCreateProcessW.Addr(), 10, uintptr(unsafe.Pointer(lpApplicationName)), uintptr(unsafe.Pointer(lpCommandLine)), uintptr(unsafe.Pointer(lpProcessAtrributes)), uintptr(unsafe.Pointer(lpThreadAttributes)), uintptr(_p0), uintptr(dwCreationFlags), uintptr(unsafe.Pointer(lpEnvironment)), uintptr(unsafe.Pointer(lpCurrentDirectory)), uintptr(unsafe.Pointer(lpStartupInfo)), uintptr(unsafe.Pointer(lpProcessInformation)), 0, 0)
+	ok = r0 != 0
+	return
+}
+
+// ReadFile reads data from the specified file or input/output (I/O) device. Reads occur at the position specified by the file pointer if supported by the device. See: https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-readfile
+func ReadFile(hFile windows.Handle, lpBuffer []byte, nNumberOfBytesToRead windows.Dword, lpOverlapped *windows.Overlapped) (ok bool) {
+	var _p0 *byte
+	if len(lpBuffer) > 0 {
+		_p0 = &lpBuffer[0]
+	}
+	r0, _, _ := syscall.Syscall6(procReadFile.Addr(), 5, uintptr(hFile), uintptr(unsafe.Pointer(_p0)), uintptr(len(lpBuffer)), uintptr(nNumberOfBytesToRead), uintptr(unsafe.Pointer(lpOverlapped)), 0)
+	ok = r0 != 0
+	return
+}
+
+// TerminateProcess terminates the specified process and all of its threads.
+func TerminateProcess(hProcess windows.Handle, uExitCode uint) (ok bool) {
+	r0, _, _ := syscall.Syscall(procTerminateProcess.Addr(), 2, uintptr(hProcess), uintptr(uExitCode), 0)
+	ok = r0 != 0
+	return
+}
+
+// OpenProcess opens an existing local process object.
+func OpenProcess(dwDesiredAccess windows.Dword, bInheritHandle bool, dwProcessId windows.Dword) (handle windows.Handle) {
+	var _p0 uint32
+	if bInheritHandle {
+		_p0 = 1
+	} else {
+		_p0 = 0
+	}
+	r0, _, _ := syscall.Syscall(procOpenProcess.Addr(), 3, uintptr(dwDesiredAccess), uintptr(_p0), uintptr(dwProcessId))
+	handle = windows.Handle(r0)
+	return
+}
+
+// EnumProcesses retrieves the process identifier for each process object in the system.
+func EnumProcesses(lpidProcess *[]byte, cb windows.Dword, lpcbNeeded *windows.LpDword) (ok bool) {
+	r0, _, _ := syscall.Syscall(procEnumProcess.Addr(), 3, uintptr(unsafe.Pointer(lpidProcess)), uintptr(cb), uintptr(unsafe.Pointer(lpcbNeeded)))
+	ok = r0 != 0
 	return
 }
 
