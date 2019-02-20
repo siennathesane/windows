@@ -24,7 +24,7 @@ To add syscalls:
 
 ### Why `github.com/mxplusb/windows` instead of `golang.org/x/sys/windows`?
 
-I have put a few syscalls into the `golang.org/x/sys` library, and it's neither well documented nor easy. The Go Authors feel it's best to leave documentation out, which forces devs to search for them online, and really raises the bar for entry. Also, adding new syscalls is time consuming and not guaranteed due to pre-existing bloat. They have stated it's impossible to get all Windows APIs into `golang.org/x/sys/windows` and they have no interest in really optimising the experience. While I understand their logic, I was thoroughly turned off when I was looking for Windows syscalls, so I felt I can provide a better dev experience with a more Windows developer friendly interface with [blackjack and hookers](https://www.youtube.com/watch?v=5l3ipKcnYlQ). This is not to say the Go Authors' approach is bad, it's just a difference of opinion.
+I have put a few syscalls into the `golang.org/x/sys` library, and it's neither well documented nor easy. The Go Authors feel it's best to leave documentation out, which forces devs to search for them online, and really raises the bar for entry. Also, adding new syscalls is time consuming and not guaranteed due to pre-existing bloat. They have stated it's impossible to get all Windows APIs into `golang.org/x/sys/windows` and they have no interest in really optimising the experience. While I understand their logic, I was thoroughly turned off when I was looking for Windows syscalls, so I felt I can provide a better dev experience with a more Windows developer friendly interface. This is not to say the Go Authors' approach is bad, it's just a difference of opinion.
 
 I felt it was more important to have:
 
