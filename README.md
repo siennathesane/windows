@@ -41,18 +41,20 @@ To regenerate `functions.json`:
 The API file format is currently:
 
 ```json
-{
-	"code": "HRESULT EvictManagedResources(\n\n);\n",
-	"type": "",
-	"dll": "",
-	"desktop_version": "",
-	"server_version": "",
-	"header": "",
-	"documentation": "https://docs.microsoft.com/en-us/windows/desktop/api/d3d9helper/nf-d3d9helper-idirect3ddevice9-evictmanagedresources",
-	"lib": "",
-	"feature": "",
-	"remarks": null
-}
+[
+    {
+        "code": "HRESULT EvictManagedResources(\n\n);\n",
+        "type": "",
+        "dll": "",
+        "desktop_version": "",
+        "server_version": "",
+        "header": "",
+        "documentation": "https://docs.microsoft.com/en-us/windows/desktop/api/d3d9helper/nf-d3d9helper-idirect3ddevice9-evictmanagedresources",
+        "lib": "",
+        "feature": "",
+        "remarks": null
+    }
+]
 ```
 
 The scraping tool is a bit buggy but we're getting there.

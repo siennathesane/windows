@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/net/html"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
 	"sync"
+
+	"golang.org/x/net/html"
 )
 
 const (
@@ -210,7 +211,6 @@ func codeExtractor(url string, wg *sync.WaitGroup, out chan *FuncExpr) error {
 
 	fn.remarker(buf.String())
 	out <- fn
-	fmt.Printf("%#v\n", fn)
 	return nil
 }
 
