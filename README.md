@@ -4,6 +4,16 @@
 
 This package makes a best-effort attempt at an idiomatic Go interface to making syscalls for Windows.
 
+### Should I use this?
+
+It depends.
+
+Currently this project is undergoing major flux as I figure out how I want to handle the Windows API surface. If you version lock it to a specific commit and you are happy with it, then go for it. Otherwise, I would wait until it's got better versioning support.
+
+### RFCs
+
+Check out the docs/rfcs folder for what's up!
+
 ### Contributing
 
 To add syscalls:
@@ -21,6 +31,31 @@ To add syscalls:
   * Write an example if possible!
   * Tests are designed to help you understand what the API feels like, if it feels clunky, then write a wrapper for it.
 * Submit a PR! This package can't grow without your help, let's make it awesome!
+
+To regenerate `functions.json`:
+
+* `go run docs-scraper/main.go`
+* Wait. It takes a long time as there are many Windows APIs...
+* Review the changes.
+
+The API file format is currently:
+
+```json
+{
+	"code": "HRESULT EvictManagedResources(\n\n);\n",
+	"type": "",
+	"dll": "",
+	"desktop_version": "",
+	"server_version": "",
+	"header": "",
+	"documentation": "https://docs.microsoft.com/en-us/windows/desktop/api/d3d9helper/nf-d3d9helper-idirect3ddevice9-evictmanagedresources",
+	"lib": "",
+	"feature": "",
+	"remarks": null
+}
+```
+
+The scraping tool is a bit buggy but we're getting there.
 
 ### Why `github.com/mxplusb/windows` instead of `golang.org/x/sys/windows`?
 
