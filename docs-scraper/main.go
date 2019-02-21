@@ -24,7 +24,7 @@ var (
 	libRegex     = regexp.MustCompile("[A-Za-z].*\\.lib")
 
 	// global separator
-	globalSep = "$"
+	globalSep = "^"
 )
 
 type FuncExpr struct {
@@ -216,7 +216,8 @@ func codeExtractor(url string, wg *sync.WaitGroup, out chan *FuncExpr) error {
 
 // grab the dll, header, lib, and any other remarks.
 func (fn *FuncExpr) remarker(s string) {
-	splitter := strings.Split(s, "$")
+	splitter := strings.Split(s, globalSep)
+	// TODO (mxplusb): figure out why this only works sometimes and not others. it seems to be specific to the DX libraries for some reason.
 	for idx := range splitter {
 		switch {
 		case dllRegex.MatchString(splitter[idx]):
