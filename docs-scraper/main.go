@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"golang.org/x/net/html"
 )
@@ -19,14 +20,26 @@ const (
 
 var (
 	// our various matchers.
-	remarksRegex = regexp.MustCompile("[A-Z0-9_()]+")
-	dllRegex     = regexp.MustCompile("[A-Za-z].*\\.dll")
-	headerRegex  = regexp.MustCompile("[A-Za-z].*\\.h")
-	libRegex     = regexp.MustCompile("[A-Za-z].*\\.lib")
+	dllRegex        = regexp.MustCompile(`[A-Za-z].*\.dll`)
+	headerRegex     = regexp.MustCompile(`[A-Za-z].*\.h`)
+	libRegex        = regexp.MustCompile(`[A-Za-z].*\.lib`)
+	winServerRegex  = regexp.MustCompile(`(Windows\s[Serv0-9]{4,}.*)`)
+	winDesktopRegex = regexp.MustCompile(`(Windows\s[^Serv].*)`)
 
 	// global separator
 	globalSep = "^"
 )
+
+// internal counter for human reference.
+type counter int32
+
+func (c *counter) increment() int32 {
+	return atomic.AddInt32((*int32)(c), 1)
+}
+
+func (c *counter) get() int32 {
+	return atomic.LoadInt32((*int32)(c))
+}
 
 type FuncExpr struct {
 	Code           string   `json:"code"`
@@ -47,12 +60,15 @@ type Remark struct {
 }
 
 func main() {
+	fmt.Println("hello from boulder.")
+
 	// set up our pipeline
 	indexSprawlerToDesktopApiSetIndices := make(chan string, 100) // results from indexSprawler
 	apiSetIndexToFnExtractor := make(chan string, 100)            // tree from the apiSetIndexCrawler
 	fnChan := make(chan *FuncExpr, 25)                            // final receiver.
 
 	allTheCode := make([]*FuncExpr, 0) // final code list.
+	c := new(counter)
 
 	var wg sync.WaitGroup
 
@@ -82,6 +98,10 @@ func main() {
 			}
 			if err := ioutil.WriteFile("functions.json", functions, 0644); err != nil {
 				panic(err)
+			}
+			c.increment()
+			if c.get()%5 == 0 {
+				fmt.Printf("\rfunctions found: %d\n", c.get())
 			}
 		}
 		wg.Done()
@@ -180,7 +200,9 @@ func codeExtractor(url string, wg *sync.WaitGroup, out chan *FuncExpr) error {
 	var buf bytes.Buffer
 	codeChunk = func(n *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "code" {
-			buf.WriteString(n.FirstChild.Data + globalSep)
+			if n.FirstChild != nil {
+				buf.WriteString(n.FirstChild.Data + globalSep)
+			}
 		}
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
 			codeChunk(c)
@@ -192,24 +214,26 @@ func codeExtractor(url string, wg *sync.WaitGroup, out chan *FuncExpr) error {
 	codeSignature := buf.String()
 	codeSnippetSplit := strings.Split(codeSignature, globalSep)
 	fn.Code = codeSnippetSplit[0]
-	buf.Reset()
 
+	featureSplit := strings.Split(url, "/")
+	fn.Feature = featureSplit[7]
+
+	var verBuf bytes.Buffer
 	var versionTable func(*html.Node)
 	versionTable = func(n *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "td" {
 			// write each found table value and our custom string separator.
-			buf.WriteString(n.FirstChild.Data + globalSep)
+			if n.FirstChild != nil {
+				verBuf.WriteString(n.FirstChild.Data + globalSep)
+			}
 		}
-		if n.Type == html.ElementNode {
-			versionTable(n.FirstChild)
-		}
-		if n.NextSibling != nil {
-			versionTable(n.NextSibling)
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			versionTable(c)
 		}
 	}
 	versionTable(doc)
 
-	fn.remarker(buf.String())
+	fn.remarker(verBuf.String())
 	out <- fn
 	return nil
 }
@@ -220,14 +244,14 @@ func (fn *FuncExpr) remarker(s string) {
 	// TODO (mxplusb): figure out why this only works sometimes and not others. it seems to be specific to the DX libraries for some reason.
 	for idx := range splitter {
 		switch {
+		case splitter[idx] == "strong":
+			continue
 		case dllRegex.MatchString(splitter[idx]):
 			fn.DLL = splitter[idx]
 		case libRegex.MatchString(splitter[idx]):
 			fn.Lib = splitter[idx]
 		case headerRegex.MatchString(splitter[idx]):
 			fn.Header = splitter[idx]
-		case remarksRegex.MatchString(splitter[idx]):
-			fn.Remarks = append(fn.Remarks, Remark{splitter[idx], splitter[idx+1]})
 		}
 	}
 }
